@@ -2,12 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 
               android:layout_width="match_parent"
-              android:layout_height="wrap_content"
+              android:layout_height="160dp"
               android:weightSum="1"
-              android:orientation="horizontal">
+              android:orientation="horizontal" android:paddingTop="5dp" android:paddingBottom="5dp"
+              >
     <ImageView
             android:layout_width="0dp"
-            android:layout_height="200dp"
+            android:layout_height="150dp"
             android:id="@+id/imageView3"
             android:src="@mipmap/ic_launcher"
             android:layout_weight="0.5"
@@ -16,10 +17,9 @@
             android:rotation="90"
     />
     <TextView
-            android:text="mook"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/textView5"
-            android:layout_weight="0.5"/>
+            android:layout_weight="0.5" android:textSize="17sp" android:textAlignment="center"/>
 
 </LinearLayout>
