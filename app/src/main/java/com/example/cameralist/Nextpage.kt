@@ -3,9 +3,12 @@ package com.example.cameralist
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.*
 import android.net.Uri
 import android.os.Build
 
@@ -22,10 +25,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-import android.graphics.BitmapFactory
-import android.graphics.Bitmap
-import android.graphics.BitmapShader
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.provider.MediaStore.Images.Media.getBitmap
+import android.support.v4.content.ContextCompat
+import android.support.v7.widget.helper.ItemTouchHelper
 import layout.imageAdapter
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -34,10 +38,10 @@ import java.io.ByteArrayOutputStream
 class Nextpage : AppCompatActivity() {
 
     lateinit var myDb: Databate
-    //lateinit var myAdapter:imageAdapter
+
     var list =ArrayList<String>()
     var time = ArrayList<String>()
-    //var arr = ArrayList<Uri>()
+
     private val IMAGE_CAPTURE_CODE= 1001;
     private val PERMISSION_CODE = 1000;
     var image_uri:Uri? = null
@@ -45,6 +49,8 @@ class Nextpage : AppCompatActivity() {
     var arrBitmap = ArrayList<Bitmap>()
     var hashMap:HashMap<String,String> = HashMap<String,String>()
     var objects = ArrayList<storeImage>()
+    private lateinit var deleteIcon:Drawable
+    private  var swipBackground: ColorDrawable = ColorDrawable(Color.parseColor("#FF0000"))
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nextpage)
@@ -52,7 +58,11 @@ class Nextpage : AppCompatActivity() {
         myDb = Databate(this)
         showData()
         recyclerView = findViewById(R.id.recyclerView) as RecyclerView
-        recyclerView!!.layoutManager = LinearLayoutManager(this)
+        recyclerView!!.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager
+
+        deleteIcon = ContextCompat.getDrawable(this,R.drawable.ic_delete)!!
+
+
         val arr = ArrayList<Bitmap>()
 
         arrBitmap.forEach {
@@ -62,6 +72,80 @@ class Nextpage : AppCompatActivity() {
 
         var myAdapter = imageAdapter(objects,time,this)
         recyclerView!!.setAdapter(myAdapter)
+
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT ){
+
+            override fun onMove(p0: RecyclerView, p1: RecyclerView.ViewHolder, p2: RecyclerView.ViewHolder): Boolean {
+                return false
+             }
+
+            override fun onSwiped(p0: RecyclerView.ViewHolder, p1: Int) {
+                //var isInsert = myDb.insertData(BitmapToString(small),BitmapToString(large),currentDate.toString())
+                (myAdapter as imageAdapter).removeImage(p0,myDb,objects)
+                showData()
+
+                //               // finish();
+                //startActivity(getIntent());
+                val myAdapter = imageAdapter(objects,time,baseContext)
+                recyclerView!!.setAdapter(myAdapter)
+
+
+            }
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                val itemView = viewHolder.itemView
+                val iconMarginVertical = (itemView.height - deleteIcon.intrinsicHeight) / 2
+
+                if (dX > 0) {
+//                    colorDrawableBackground.setBounds(itemView.left, itemView.top, dX.toInt(), itemView.bottom)
+//
+                    swipBackground.setBounds(itemView.left,itemView.top,dX.toInt(),itemView.bottom)
+                    deleteIcon.setBounds(itemView.left + iconMarginVertical, itemView.top + iconMarginVertical,
+                       itemView.left + iconMarginVertical + deleteIcon.intrinsicWidth, itemView.bottom - iconMarginVertical)
+                } else {
+//                    colorDrawableBackground.setBounds(itemView.right + dX.toInt(), itemView.top, itemView.right, itemView.bottom)
+                    swipBackground.setBounds(itemView.right+dX.toInt(),itemView.top,itemView.right,itemView.bottom)
+                    deleteIcon.setBounds(itemView.right - iconMarginVertical - deleteIcon.intrinsicWidth, itemView.top + iconMarginVertical,
+                        itemView.right - iconMarginVertical, itemView.bottom - iconMarginVertical)
+                    deleteIcon.level = 0
+
+                }
+
+                //colorDrawableBackground.draw(c)
+                swipBackground.draw(c)
+
+
+                c.save()
+//
+                if (dX > 0)
+                    c.clipRect(itemView.left, itemView.top, dX.toInt(), itemView.bottom)
+                else
+                    c.clipRect(itemView.right + dX.toInt(), itemView.top, itemView.right, itemView.bottom)
+
+                deleteIcon.draw(c)
+
+//
+//                deleteIcon.draw(c)
+//
+                c.restore()
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
+
+        }
+//        myAdapter = imageAdapter(objects,time,this)
+//        recyclerView!!.setAdapter(myAdapter)
+
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
 
         buttonCamera.setOnClickListener {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
@@ -98,13 +182,28 @@ class Nextpage : AppCompatActivity() {
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri)
         startActivityForResult(cameraIntent,IMAGE_CAPTURE_CODE)
 
-        //val rawTakenImage = BitmapFactory.decodeFile(image_uri.getPath())
-        //val rawTakenImage = BitmapFactory.decodeFile(image_uri.toString())
 
-        //val resizedBitmap = BitmapScaler.scaleToFitWidth(rawTakenImage, SOME_WIDTH);
-        //val resizedBitmap = BitmapScaler.scaleToFitWidth
 
     }
+
+    override fun onBackPressed() {
+
+        val alertdialog = AlertDialog.Builder(this)
+        alertdialog.setTitle("LogOut")
+        alertdialog.setMessage("Are you sure you Want to LogOut the app???")
+        alertdialog.setPositiveButton(
+            "yes"
+        ) { dialog, which -> super.onBackPressed() }
+
+        alertdialog.setNegativeButton(
+            "No"
+        ) { dialog, which -> dialog.cancel() }
+
+        val alert = alertdialog.create()
+        alertdialog.show()
+
+    }
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         when(requestCode){
@@ -121,16 +220,7 @@ class Nextpage : AppCompatActivity() {
         }
     }
 
-//    fun BitmapToString(bitmap: Bitmap): String {
-//        val outputStream = ByteArrayOutputStream()
-//        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-//        return android.util.Base64.encodeToString(outputStream.toByteArray(), android.util.Base64.DEFAULT)
-//    }
-//    fun StringToBitmap(string: String):Bitmap{
-//        val imageBytes = android.util.Base64.decode(string, 0)
-//        val image=BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size);
-//        return image
-//    }
+
     private fun resizeBitmap(bitmap:Bitmap, width:Int, height:Int):Bitmap{
 
         return Bitmap.createScaledBitmap(bitmap, width, height, false)
@@ -142,37 +232,17 @@ class Nextpage : AppCompatActivity() {
             val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
             val currentDate = sdf.format(Date())
 
-//            System.out.println(" C DATE is  "+currentDate.toString())
 
-
-            //list.add(image_uri.toString())
-            //time.add(currentDate.toString())
+            time.add(currentDate.toString())
 
             var mBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, image_uri)
             arrBitmap.add(mBitmap)
-            //hashMap.put()
-            println("bbbbbbbbbbbbbb"+mBitmap)
+            var small = resizeBitmap(mBitmap, 150, 150)
+            var large = resizeBitmap(mBitmap, 600, 600)
 
-            val isInsert = myDb.insertData(arrBitmap.toString(),currentDate.toString())
-
-            //imageView.setImageURI(image_uri)
-
-
-
-            showData()
-            val arr = ArrayList<Bitmap>()
-
-            arrBitmap.forEach {
-                arr.add(resizeBitmap(it, 150, 150))
-                var small = resizeBitmap(it, 150, 150)
-                var large = resizeBitmap(it, 600, 600)
-                hashMap.put(BitmapToString(small),BitmapToString(large))
-                var Obj:storeImage = storeImage(BitmapToString(small) ,BitmapToString(large))
-                //hashMap.put("kk","mm")
-                objects.add(Obj)
-            }
-
-
+            var Obj:storeImage = storeImage(BitmapToString(small) ,BitmapToString(large))
+            objects.add(Obj)
+            var isInsert = myDb.insertData(BitmapToString(small),BitmapToString(large),currentDate.toString())
             val myAdapter = imageAdapter(objects,time,this)
             recyclerView!!.setAdapter(myAdapter)
         }
@@ -180,45 +250,20 @@ class Nextpage : AppCompatActivity() {
 
     fun showData(){
         val res = myDb.getAllData()
-        list =ArrayList<String>()
-        //arrBitmap = ArrayList<Bitmap>()
-        //arr = ArrayList<Uri>()
+
         time = ArrayList<String>()
-
-        var stringBitmap = ArrayList<String>()
-
+        objects = ArrayList<storeImage>()
         if (res.getCount() != 0){
 
             while (res.moveToNext()){
-                list.add(res.getString(0))
-                time.add(res.getString(1))
+                var Obj:storeImage = storeImage(res.getString(0) ,res.getString(1))
+                objects.add(Obj)
+                time.add(res.getString(2))
+
             }
         }
     }
-//    inner class imageAdapter(var items: ArrayList<Bitmap>,var time:ArrayList<String>) : RecyclerView.Adapter<imageHolder>(){
-//        override fun onCreateViewHolder(parentView: ViewGroup, option: Int): imageHolder {
-//            val view = LayoutInflater.from(applicationContext).inflate(R.layout.list_item,parentView,false)
-//            return imageHolder(view)
-//        }
-//
-//        override fun getItemCount(): Int {
-//            return items.size
-//        }
-//
-//        override fun onBindViewHolder(parentView: imageHolder, option: Int) {
-////            var uri:Uri = Uri.parse(items.get(option))
-//            parentView.getImage?.setImageBitmap(items[option])
-//            parentView.getText?.text = time.get(option)
-//        }
-//
-//    }
-//
-//
-//    inner class imageHolder(itemView: View):RecyclerView.ViewHolder(itemView) {
-//        val getImage = itemView.imageView3
-//        val getText = itemView.textView5
-//
-//    }
+
 
 
 }

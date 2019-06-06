@@ -10,11 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-
 import kotlinx.android.synthetic.main.list_item.view.*
 import android.R.attr.bitmap
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
+import android.support.design.widget.Snackbar
 import com.example.cameralist.*
 import java.io.ByteArrayOutputStream
 
@@ -62,6 +62,10 @@ import java.io.ByteArrayOutputStream
 
 
 class imageAdapter(var items: ArrayList<storeImage>, var time:ArrayList<String>,val context: Context) : RecyclerView.Adapter<imageAdapter.imageHolder>(){
+
+    private var removedPosition: Int = 0
+    private var removedItem: String = ""
+
     override fun onBindViewHolder(p0: imageHolder, p1: Int) {
         p0.getImage?.setImageBitmap(StringToBitmap(items[p1].getsmall()))
 //        p0.getImage?.setImageBitmap(items[p1])
@@ -70,11 +74,10 @@ class imageAdapter(var items: ArrayList<storeImage>, var time:ArrayList<String>,
         p0.itemView.setOnClickListener{
             println("pppppp")
 
-//            val outputStream = ByteArrayOutputStream()
-//            StringToBitmap(items[p1].getlarge()).compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+
 
             var intent = Intent(p0.itemView.context,LargeImage::class.java)
-//            val convertPictureToBase64 = items[p1].getlarge()
+
             val sp = context.getSharedPreferences("large_image", Context.MODE_PRIVATE)
             val editor = sp.edit()
             editor.putString("image",items[p1].getlarge() )
@@ -82,7 +85,7 @@ class imageAdapter(var items: ArrayList<storeImage>, var time:ArrayList<String>,
 
             intent.putExtra("large_image","")
 
-           // p0.itemView.context.startActivity(intent)
+
             p0.itemView.context.startActivity(intent)
         }
     }
@@ -98,10 +101,17 @@ class imageAdapter(var items: ArrayList<storeImage>, var time:ArrayList<String>,
     override fun getItemCount(): Int {
         return items.size
     }
+    fun removeImage(p0:RecyclerView.ViewHolder,db:Databate,obj:ArrayList<storeImage>){
+        removedItem = obj[p0.position].getsmall()
+        removedPosition = p0.position
+        println("pppppppppppppppppppooooooooooooooooooo   "+p0.position)
 
+        db.daleteData(obj[p0.position].getsmall())
+
+
+
+    }
     inner class imageHolder(itemView: View?):RecyclerView.ViewHolder(itemView!!) {
-        //val getImage = itemView?.imageView3
-        //val getText = itemView?.textView5
 
         val getImage = itemView?.findViewById<ImageView>(R.id.imageView3)
         val getText = itemView?.findViewById<TextView>(R.id.textView5)

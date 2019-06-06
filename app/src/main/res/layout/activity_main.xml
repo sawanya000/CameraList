@@ -10,7 +10,7 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="USERNAME"
+            android:text="USERNAME : "
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent" android:textSize="18sp" android:layout_marginTop="220dp"
             android:layout_marginLeft="48dp" android:fontFamily="@font/actor" android:id="@+id/textView2"/>
@@ -23,7 +23,7 @@
             app:layout_constraintTop_toTopOf="@+id/textView2" app:layout_constraintStart_toEndOf="@+id/textView2"
             android:layout_marginStart="8dp" app:layout_constraintBottom_toBottomOf="@+id/textView2"/>
     <TextView
-            android:text="PASSWORD"
+            android:text="PASSWORD : "
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/textView3" android:fontFamily="@font/actor"
